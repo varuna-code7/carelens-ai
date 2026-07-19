@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CareLens — Symptom Check</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232F6F62'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6.5 12.5h2l1-2.4L11 15l1-2.5h2.2' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%230F766E'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6.5 12.5h2l1-2.4L11 15l1-2.5h2.2' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -472,12 +472,14 @@
         <circle cx="168" cy="150" r="4.5" fill="var(--moderate-bg)"/>
         <rect x="86" y="60" width="60" height="80" rx="6" fill="#FFFFFF" stroke="var(--accent)" stroke-width="2"/>
         <rect x="104" y="52" width="24" height="12" rx="3" fill="var(--accent)"/>
-        <path d="M96 82h6M96 92h20M96 100h20M96 108h14" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M99 82l3 3 4-6" stroke="var(--low)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M60 66c0 14 0 22 10 22s10-8 10-16" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-        <circle cx="60" cy="62" r="4" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
-        <circle cx="80" cy="62" r="4" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
-        <circle cx="70" cy="92" r="5" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+        <path d="M96 96h6M96 104h20M96 112h20M96 120h14" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M99 96l3 3 4-6" stroke="var(--low)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="58" cy="52" r="3.4" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+        <circle cx="80" cy="52" r="3.4" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+        <path d="M58 55c0 12 -2 18 9 18s9-6 9-14" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+        <path d="M67 73v14" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="67" cy="92" r="7" fill="#FFFFFF" stroke="var(--accent)" stroke-width="2.4"/>
+        <circle cx="67" cy="92" r="2.6" fill="var(--accent)"/>
         <path d="M132 120c8-10 20-10 24 0s-4 20-24 34c-20-14-28-24-24-34s16-10 24 0z" fill="var(--accent)"/>
         <path d="M118 130h8l4-8 5 12 4-6h6" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
@@ -614,10 +616,8 @@
 </div>
 
 <script>
-  // Point this at your deployed Flask backend before going live.
-  // Local dev: http://127.0.0.1:5000/assess-symptoms
-  // After Render deploy: https://your-render-app.onrender.com/assess-symptoms
-  const API_URL = "http://127.0.0.1:5000/assess-symptoms";
+  // Live backend on Render.
+  const API_URL = "https://carelens-ai.onrender.com/assess-symptoms";
   const HISTORY_KEY = "carelens_history";
   const MAX_HISTORY = 5;
 
@@ -730,7 +730,6 @@
     levelText.textContent = (data.risk_icon || '') + ' ' + data.risk_level;
     recText.textContent = data.recommendation;
 
-    // Show a gentle nudge when the input was too brief to trust confidently
     let noteEl = document.getElementById('lowInfoNote');
     if (data.note){
       if (!noteEl){
@@ -844,8 +843,6 @@
   const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognitionAPI){
-    // Not supported (e.g. Firefox, some Safari versions) — hide rather than
-    // show a button that silently does nothing.
     micBtn.style.display = 'none';
     const langWrapEl = document.getElementById('langWrap');
     if (langWrapEl) langWrapEl.style.display = 'none';

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CareLens — Medicine Scan</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232F6F62'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6.5 12.5h2l1-2.4L11 15l1-2.5h2.2' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%230F766E'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6.5 12.5h2l1-2.4L11 15l1-2.5h2.2' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -417,7 +417,7 @@
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--ink-soft)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
       <path d="M5.5 12.5h2.8l1.4-3.6 2 6.2 1.4-3.6h3" stroke="var(--ink-soft)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <p style="font-size:14px; margin:0;">Upload a photo to see what the medicine is and how to use it safely.</p>
+    <p style="font-size:14px; margin:0;">Upload a photo or search a name to see what a medicine is and how to use it safely.</p>
   </div>
 
   <div id="result" aria-live="polite"></div>
@@ -429,7 +429,7 @@
 </div>
 
 <script>
-  const API_URL = "http://127.0.0.1:5000/scan-medicine";
+  const API_URL = "https://carelens-ai.onrender.com/scan-medicine";
   const MAX_BYTES = 8 * 1024 * 1024;
 
   const dropzone = document.getElementById('dropzone');
@@ -585,7 +585,7 @@
   submitBtn.addEventListener('click', scanMedicine);
 
   // --- Search by name ---
-  const SEARCH_URL = "http://127.0.0.1:5000/search-medicine";
+  const SEARCH_URL = "https://carelens-ai.onrender.com/search-medicine";
   const nameInput = document.getElementById('nameInput');
   const searchBtn = document.getElementById('searchBtn');
   const searchHint = document.getElementById('searchHint');
@@ -625,7 +625,7 @@
       }
 
       setSearchHint('Know the tablet name already? Search it directly — no photo needed.', false);
-      renderResult(data); // no raw_text on this path, so that section is simply skipped
+      renderResult(data);
     } catch(err){
       setSearchHint("Couldn't reach CareLens right now — check the backend is running.", true);
       console.error(err);

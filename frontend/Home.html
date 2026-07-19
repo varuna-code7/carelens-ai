@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareLens — Your AI Health Companion</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%230F766E'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F8FAFC;
+    --bg-gradient-top: #F0FDFA;
+    --surface: #FFFFFF;
+    --ink: #0F172A;
+    --ink-soft: #475569;
+    --placeholder: #94A3B8;
+    --line: #E2E8F0;
+    --accent: #0F766E;
+    --accent-hover: #115E59;
+    --accent-2: #14B8A6;
+    --accent-cyan: #06B6D4;
+    --accent-soft: #F0FDFA;
+    --low: #10B981;
+    --low-bg: #D1FAE5;
+    --moderate: #F59E0B;
+    --moderate-bg: #FEF3C7;
+    --high: #EF4444;
+    --high-bg: #FEE2E2;
+    --card-shadow: 0 10px 30px rgba(15,118,110,0.08);
+    --card-shadow-lg: 0 20px 50px rgba(15,118,110,0.12);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.6;
+  }
+
+  .wrap{ max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+  a{ color: inherit; }
+
+  .site-header{
+    position: sticky; top:0; z-index: 40;
+    background: rgba(248,250,252,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .site-header .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top: 16px; padding-bottom: 16px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .mark{
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .mark svg{ width:18px; height:18px; }
+  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .brand-name{ font-family:'Fraunces', serif; font-size: 20px; font-weight: 600; letter-spacing:-0.01em; color:var(--ink); }
+  .brand-name span{ color: var(--accent); }
+
+  nav.site-nav{ display:flex; align-items:center; gap: 28px; }
+  nav.site-nav a{
+    text-decoration:none; font-size: 14.5px; font-weight: 500; color: var(--ink-soft);
+    transition: color .2s ease;
+  }
+  nav.site-nav a:hover{ color: var(--accent); }
+
+  .header-ctas{ display:flex; align-items:center; gap:10px; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:14.5px;
+    padding: 10px 20px; border-radius: 999px; text-decoration:none;
+    cursor:pointer; border: none; min-height:44px;
+    transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+  }
+  .btn-primary{ background: linear-gradient(135deg, var(--accent-2), var(--accent)); color:#fff; }
+  .btn-primary:hover{ box-shadow: 0 8px 20px rgba(15,118,110,0.3); transform: translateY(-1px); }
+  .btn-ghost{ background: var(--surface); color: var(--accent); border: 1px solid var(--line); box-shadow: var(--card-shadow); }
+  .btn-ghost:hover{ border-color: var(--accent-2); }
+  .btn-lg{ padding: 14px 28px; font-size:15.5px; }
+
+  @media (max-width: 760px){
+    nav.site-nav{ display:none; }
+  }
+
+  @keyframes fadeInUp{ from{ opacity:0; transform: translateY(14px);} to{ opacity:1; transform:none; } }
+  .hero{ position:relative; overflow:hidden; padding: 72px 0 56px; }
+  .hero-blob{
+    position:absolute; border-radius:50%; filter: blur(2px);
+    background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+    opacity:0.9; z-index:0;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .hero-row{ display:flex; align-items:center; justify-content:space-between; gap: 48px; }
+  .hero-text{ flex:1; min-width:0; max-width: 560px; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size:12.5px; font-weight:600; padding:6px 14px; border-radius:999px;
+    margin-bottom: 20px; animation: fadeInUp .5s ease-out both;
+  }
+  h1.hero-title{
+    font-family:'Fraunces', serif; font-weight:600; letter-spacing:-0.02em;
+    font-size: clamp(34px, 5vw, 52px); line-height:1.08; margin: 0 0 18px;
+    animation: fadeInUp .5s ease-out .08s both;
+  }
+  h1.hero-title span{ color: var(--accent); }
+  .hero-sub{
+    font-size: 17px; color: var(--ink-soft); max-width: 46ch; margin: 0 0 32px;
+    animation: fadeInUp .5s ease-out .16s both;
+  }
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; animation: fadeInUp .5s ease-out .24s both; }
+  .hero-trust{ display:flex; gap:22px; margin-top:32px; flex-wrap:wrap; animation: fadeInUp .5s ease-out .32s both; }
+  .trust-item{ display:flex; align-items:center; gap:8px; font-size:13px; color: var(--ink-soft); }
+
+  .hero-illustration{ flex-shrink:0; width:340px; animation: fadeInUp .6s ease-out .2s both; }
+  @media (max-width: 960px){
+    .hero-row{ flex-direction: column; }
+    .hero-illustration{ order:-1; width:220px; }
+    .hero-text{ max-width:100%; text-align:left; }
+  }
+  @media (max-width: 600px){
+    .hero{ padding: 40px 0 36px; }
+    .hero-illustration{ width:170px; }
+    .hero-ctas{ flex-direction:column; align-items:stretch; }
+  }
+
+  section{ padding: 72px 0; }
+  @media (max-width: 600px){ section{ padding: 44px 0; } }
+  .section-eyebrow{
+    font-size:12.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    color: var(--accent); margin: 0 0 10px;
+  }
+  h2.section-title{
+    font-family:'Fraunces', serif; font-weight:600; letter-spacing:-0.01em;
+    font-size: clamp(26px, 3.4vw, 36px); margin: 0 0 14px; color:var(--ink);
+  }
+  .section-sub{ font-size:15.5px; color:var(--ink-soft); max-width:56ch; margin:0 0 40px; }
+  .section-head{ text-align:center; margin: 0 auto 40px; max-width:640px; }
+  .section-head .section-sub{ margin-left:auto; margin-right:auto; }
+
+  .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media (max-width: 900px){ .grid-4{ grid-template-columns:repeat(2,1fr);} .grid-3{ grid-template-columns:repeat(1,1fr);} }
+  @media (max-width: 560px){ .grid-4{ grid-template-columns:1fr; } }
+
+  .glass-card{
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226,232,240,0.8);
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: var(--card-shadow);
+    transition: transform .3s ease, box-shadow .3s ease;
+  }
+  .glass-card:hover{ transform: translateY(-4px); box-shadow: var(--card-shadow-lg); }
+
+  .feature-icon{
+    width:46px; height:46px; border-radius:14px;
+    background: linear-gradient(135deg, var(--accent-soft), #E0F2FE);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+  }
+  .feature-title{ font-size:16px; font-weight:600; margin:0 0 8px; color:var(--ink); }
+  .feature-text{ font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin:0; }
+
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; position:relative; }
+  @media (max-width: 900px){ .steps{ grid-template-columns:1fr; } }
+  .step{ text-align:center; padding: 8px; }
+  .step-num{
+    width:52px; height:52px; border-radius:50%; margin:0 auto 18px;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-size:20px; font-weight:600;
+    box-shadow: 0 8px 20px rgba(15,118,110,0.25);
+  }
+  .step-title{ font-size:16.5px; font-weight:600; margin:0 0 8px; }
+  .step-text{ font-size:13.5px; color:var(--ink-soft); max-width:32ch; margin:0 auto; line-height:1.6; }
+
+  .why-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:44px; align-items:center; }
+  @media (max-width: 860px){ .why-grid{ grid-template-columns:1fr; } }
+  .why-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:20px; }
+  .why-item{ display:flex; gap:14px; align-items:flex-start; }
+  .why-check{
+    width:26px; height:26px; border-radius:50%; flex-shrink:0;
+    background: var(--low-bg); color: var(--low);
+    display:flex; align-items:center; justify-content:center; margin-top:2px;
+  }
+  .why-item-title{ font-size:15px; font-weight:600; margin:0 0 4px; color:var(--ink); }
+  .why-item-text{ font-size:13.5px; color:var(--ink-soft); margin:0; line-height:1.6; }
+
+  .stat-card{
+    background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
+    border-radius: 20px; padding: 32px; color:#fff;
+    box-shadow: var(--card-shadow-lg);
+  }
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:8px; }
+  .stat-num{ font-family:'Fraunces', serif; font-size:32px; font-weight:600; margin:0; }
+  .stat-label{ font-size:12.5px; opacity:0.9; margin:4px 0 0; }
+
+  .testimonial-quote{ font-size:14.5px; color:var(--ink); line-height:1.7; margin:0 0 18px; }
+  .testimonial-person{ display:flex; align-items:center; gap:12px; }
+  .avatar{
+    width:38px; height:38px; border-radius:50%;
+    background: var(--accent-soft); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:600; flex-shrink:0;
+  }
+  .person-name{ font-size:13.5px; font-weight:600; margin:0; color:var(--ink); }
+  .person-role{ font-size:12px; color:var(--ink-soft); margin:0; }
+
+  .faq-list{ max-width:720px; margin:0 auto; display:flex; flex-direction:column; gap:12px; }
+  details.faq-item{
+    background: var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding: 6px 20px; box-shadow: var(--card-shadow);
+  }
+  details.faq-item summary{
+    cursor:pointer; list-style:none; font-size:15px; font-weight:600; color:var(--ink);
+    padding: 16px 0; display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  details.faq-item summary::-webkit-details-marker{ display:none; }
+  details.faq-item .chev{ transition: transform .25s ease; flex-shrink:0; color:var(--accent); }
+  details.faq-item[open] .chev{ transform: rotate(180deg); }
+  details.faq-item p{ font-size:14px; color:var(--ink-soft); line-height:1.65; margin:0 0 18px; }
+
+  .final-cta{
+    background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
+    border-radius: 28px; padding: 56px 40px; text-align:center; color:#fff;
+    box-shadow: var(--card-shadow-lg);
+  }
+  .final-cta h2{ font-family:'Fraunces', serif; font-size: clamp(24px,3vw,34px); margin:0 0 14px; color:#fff; }
+  .final-cta p{ font-size:15.5px; opacity:0.92; max-width:48ch; margin:0 auto 28px; }
+  .final-cta .btn-ghost{ background:#fff; color:var(--accent); border:none; }
+
+  footer{ border-top:1px solid var(--line); padding: 48px 0 32px; }
+  .footer-grid{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:32px; margin-bottom:36px; }
+  @media (max-width: 760px){ .footer-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width: 480px){ .footer-grid{ grid-template-columns:1fr; } }
+  .footer-brand-text{ font-size:13.5px; color:var(--ink-soft); max-width:32ch; margin:14px 0 0; line-height:1.6; }
+  .footer-col-title{ font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink); margin:0 0 14px; }
+  .footer-col a{ display:block; font-size:13.5px; color:var(--ink-soft); text-decoration:none; margin-bottom:10px; }
+  .footer-col a:hover{ color:var(--accent); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    border-top:1px solid var(--line); padding-top:24px; font-size:12.5px; color:var(--ink-soft);
+  }
+  .disclaimer-note{ font-size:12px; color:var(--placeholder); max-width:640px; margin: 0 auto 20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="home.html" class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="brand-name">Care<span>Lens</span></span>
+    </a>
+    <nav class="site-nav">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#why">Why CareLens</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="header-ctas">
+      <a href="medicine-scanner.html" class="btn btn-ghost">Medicine scan</a>
+      <a href="symptom-checker.html" class="btn btn-primary">Check symptoms</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-blob" style="width:420px; height:420px; top:-140px; right:-120px;"></div>
+  <div class="wrap">
+    <div class="hero-row">
+      <div class="hero-text">
+        <span class="eyebrow">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.8-9.8-9.4C.7 8 2 4.5 5.4 3.6c2-.5 3.9.3 5 1.9 1.1-1.6 3-2.4 5-1.9 3.4.9 4.7 4.4 3.2 8C19.5 16.2 12 21 12 21z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          AI-powered health guidance
+        </span>
+        <h1 class="hero-title">Your <span>AI health</span> companion</h1>
+        <p class="hero-sub">Describe your symptoms or scan a medicine — CareLens gives you a clear, judgment-free risk reading and plain-language guidance in seconds, not a diagnosis, just clarity on what to do next.</p>
+        <div class="hero-ctas">
+          <a href="symptom-checker.html" class="btn btn-primary btn-lg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.8-9.8-9.4C.7 8 2 4.5 5.4 3.6c2-.5 3.9.3 5 1.9 1.1-1.6 3-2.4 5-1.9 3.4.9 4.7 4.4 3.2 8C19.5 16.2 12 21 12 21z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            Check my symptoms
+          </a>
+          <a href="medicine-scanner.html" class="btn btn-ghost btn-lg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+            Scan a medicine
+          </a>
+        </div>
+        <div class="hero-trust">
+          <div class="trust-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="var(--accent)" stroke-width="1.6"/><path d="M8 11V8a4 4 0 018 0v3" stroke="var(--accent)" stroke-width="1.6"/></svg> Private by design</div>
+          <div class="trust-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.8-9.8-9.4C.7 8 2 4.5 5.4 3.6c2-.5 3.9.3 5 1.9 1.1-1.6 3-2.4 5-1.9 3.4.9 4.7 4.4 3.2 8C19.5 16.2 12 21 12 21z" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/></svg> Not a diagnosis</div>
+          <div class="trust-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="var(--accent)" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/></svg> Instant results</div>
+        </div>
+      </div>
+      <div class="hero-illustration">
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          <circle cx="100" cy="100" r="95" fill="var(--accent-soft)"/>
+          <circle cx="30" cy="40" r="7" fill="var(--low-bg)"/>
+          <circle cx="172" cy="150" r="5" fill="var(--moderate-bg)"/>
+          <rect x="82" y="56" width="66" height="86" rx="8" fill="#FFFFFF" stroke="var(--accent)" stroke-width="2"/>
+          <rect x="101" y="48" width="26" height="13" rx="3" fill="var(--accent)"/>
+          <path d="M94 80h8M94 91h24M94 100h24M94 109h16" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M97 80l3.5 3.5 5-7" stroke="var(--low)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M55 64c0 16 0 24 11 24s11-8 11-18" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+          <circle cx="55" cy="60" r="4.5" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+          <circle cx="77" cy="60" r="4.5" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+          <circle cx="66" cy="94" r="5.5" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+          <path d="M136 122c9-11 22-11 26 0s-4 22-26 37c-22-15-30-26-26-37s17-11 26 0z" fill="var(--accent)"/>
+          <path d="M120 133h9l4-9 6 13 4-7h7" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-eyebrow">Key features</p>
+      <h2 class="section-title">Everything you need, in one place</h2>
+      <p class="section-sub">Two focused tools, built on the same careful, transparent AI matching engine.</p>
+    </div>
+    <div class="grid-4">
+      <div class="glass-card">
+        <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--accent)" stroke-width="1.7"/><path d="M8 12.5l2.5 2.5L16 9" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <p class="feature-title">AI symptom analysis</p>
+        <p class="feature-text">Describe symptoms in plain language and get a risk-level reading, backed by pattern matching against thousands of cases.</p>
+      </div>
+      <div class="glass-card">
+        <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="var(--accent)" stroke-width="1.7"/><rect x="13" y="4" width="7" height="7" rx="1.5" stroke="var(--accent)" stroke-width="1.7"/><rect x="4" y="13" width="7" height="7" rx="1.5" stroke="var(--accent)" stroke-width="1.7"/><rect x="13" y="13" width="7" height="7" rx="1.5" stroke="var(--accent)" stroke-width="1.7"/></svg></div>
+        <p class="feature-title">Medicine scanner</p>
+        <p class="feature-text">Snap a photo of a printed medicine strip or box, or just type the name, and learn what it's for and what to watch out for.</p>
+      </div>
+      <div class="glass-card">
+        <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="var(--accent)" stroke-width="1.7"/><path d="M8 11V8a4 4 0 018 0v3" stroke="var(--accent)" stroke-width="1.7"/></svg></div>
+        <p class="feature-title">Privacy first</p>
+        <p class="feature-text">Nothing you type or upload is stored on a server or shared with anyone. Your health information stays yours.</p>
+      </div>
+      <div class="glass-card">
+        <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--accent)" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <p class="feature-title">Instant risk assessment</p>
+        <p class="feature-text">Get a clear low, moderate, or high risk reading in seconds — with the reasoning behind it, not just a label.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how-it-works" style="background: var(--accent-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-eyebrow">How it works</p>
+      <h2 class="section-title">Three steps to clarity</h2>
+      <p class="section-sub">No account, no waiting room — just describe what's going on.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <p class="step-title">Describe or scan</p>
+        <p class="step-text">Type your symptoms in your own words, or upload a photo of a medicine strip.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <p class="step-title">AI reads the pattern</p>
+        <p class="step-text">CareLens matches what you shared against known patterns and flags any red-flag symptoms.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <p class="step-title">Get a clear reading</p>
+        <p class="step-text">See a risk level, plain-language explanation, and what to do next — with sources you can trust.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="why-grid">
+      <div>
+        <p class="section-eyebrow">Why choose CareLens</p>
+        <h2 class="section-title" style="margin-bottom:24px;">Built to be honest, not alarming</h2>
+        <ul class="why-list">
+          <li class="why-item">
+            <div class="why-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div><p class="why-item-title">Transparent reasoning</p><p class="why-item-text">Every reading comes with the specific words that drove the result — never a black-box verdict.</p></div>
+          </li>
+          <li class="why-item">
+            <div class="why-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div><p class="why-item-title">Safety-first defaults</p><p class="why-item-text">Uncertain or red-flag symptoms are never downgraded to "low risk" just because the model isn't sure.</p></div>
+          </li>
+          <li class="why-item">
+            <div class="why-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div><p class="why-item-title">Multilingual voice input</p><p class="why-item-text">Speak in your own language — CareLens translates and analyzes, no typing required.</p></div>
+          </li>
+          <li class="why-item">
+            <div class="why-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div><p class="why-item-title">Free and accessible</p><p class="why-item-text">No signup, no paywall — clear health guidance shouldn't be locked behind either.</p></div>
+          </li>
+        </ul>
+      </div>
+      <div class="stat-card">
+        <p style="font-size:13px; opacity:0.85; margin:0 0 6px;">At a glance</p>
+        <p style="font-family:'Fraunces',serif; font-size:24px; font-weight:600; margin:0 0 20px;">Built on real patterns, not guesswork</p>
+        <div class="stat-grid">
+          <div><p class="stat-num">24+</p><p class="stat-label">Condition patterns recognized</p></div>
+          <div><p class="stat-num">2</p><p class="stat-label">Focused tools, one engine</p></div>
+          <div><p class="stat-num">6</p><p class="stat-label">Languages for voice input</p></div>
+          <div><p class="stat-num">0</p><p class="stat-label">Data stored on our servers</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-eyebrow">FAQ</p>
+      <h2 class="section-title">Frequently asked questions</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Is CareLens a replacement for seeing a doctor?<span class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p>No. CareLens gives a general risk reading based on what you describe — it's not a medical diagnosis and doesn't replace professional care. If you're in doubt, or symptoms are severe, contact a healthcare provider.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my data stored anywhere?<span class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p>No. Your symptom descriptions and medicine photos are processed to give you a result and are not stored on a server. Your recent-checks history is saved only in your own browser.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use it in a language other than English?<span class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p>Yes — the symptom checker supports voice input in English, Tamil, Hindi, Telugu, Malayalam, and Kannada. Your speech is translated to English before analysis, and you can review the translation before submitting.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What if I photograph a handwritten prescription?<span class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+        <p>The medicine scanner currently works best with printed strips, boxes, or labels. Handwritten prescriptions are a much harder problem for OCR, and CareLens will let you know clearly if that's what it's seeing rather than guessing.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="final-cta">
+      <h2>Ready to understand what you're feeling?</h2>
+      <p>Free, private, and ready whenever you need it — no account required.</p>
+      <a href="symptom-checker.html" class="btn btn-ghost btn-lg">Get started now</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="home.html" class="brand">
+          <div class="mark">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="brand-name">Care<span>Lens</span></span>
+        </a>
+        <p class="footer-brand-text">An AI health companion that gives you clarity, not a diagnosis — built to help you act at the right time.</p>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Product</p>
+        <a href="symptom-checker.html">Symptom checker</a>
+        <a href="medicine-scanner.html">Medicine scanner</a>
+        <a href="symptom-checker.html#historySection">History</a>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Company</p>
+        <a href="#why">Why CareLens</a>
+        <a href="#faq">FAQ</a>
+        <a href="#features">Features</a>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Contact</p>
+        <a href="mailto:varuna@gmail.com">varuna@gmail.com</a>
+        <a href="#">Support</a>
+        <a href="#">Feedback</a>
+      </div>
+    </div>
+    <p class="disclaimer-note">CareLens provides general health information and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of a qualified healthcare provider.</p>
+    <div class="footer-bottom">
+      <span>© 2026 CareLens. Built for informational purposes only.</span>
+      <span>Made with care, not a diagnosis.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareLens — Symptom Check</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232F6F62'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6.5 12.5h2l1-2.4L11 15l1-2.5h2.2' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F8FAFC;
+    --bg-gradient-top: #F0FDFA;
+    --surface: #FFFFFF;
+    --ink: #0F172A;
+    --ink-soft: #475569;
+    --placeholder: #94A3B8;
+    --line: #E2E8F0;
+    --accent: #0F766E;
+    --accent-hover: #115E59;
+    --accent-2: #14B8A6;
+    --accent-cyan: #06B6D4;
+    --accent-soft: #F0FDFA;
+    --low: #10B981;
+    --low-bg: #D1FAE5;
+    --moderate: #F59E0B;
+    --moderate-bg: #FEF3C7;
+    --high: #EF4444;
+    --high-bg: #FEE2E2;
+    --card-shadow: 0 10px 30px rgba(15,118,110,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg) 420px);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+  }
+
+  .wrap{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  .content{
+    max-width: 720px;
+    margin: 0;
+  }
+  .hero-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 40px;
+    max-width: 1080px;
+    margin: 0 auto 32px;
+  }
+  .hero-text{ flex:1; min-width:0; max-width: 640px; }
+  .hero-illustration{ flex-shrink:0; width:220px; }
+
+  @media (max-width: 860px){
+    .hero-row{ flex-direction: column; align-items: flex-start; gap: 24px; }
+    .hero-illustration{ width:160px; align-self:center; order:-1; }
+  }
+  @media (max-width: 600px){
+    .wrap{ padding: 32px 18px 64px; }
+    .hero-row{ margin-bottom: 24px; }
+    .hero-illustration{ width:130px; }
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    row-gap: 14px;
+  }
+  @media (max-width: 600px){
+    header{ margin-bottom: 24px; }
+  }
+
+  .mark{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .mark svg{ width:18px; height:18px; }
+
+  .brand{
+    font-family:'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .brand span{ color: var(--accent); }
+
+  nav.tabs{
+    display:flex;
+    gap: 6px;
+    margin-bottom: 36px;
+    background: var(--accent-soft);
+    padding: 4px;
+    border-radius: 999px;
+    width: fit-content;
+  }
+  nav.tabs a{
+    text-decoration:none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 8px 18px;
+    border-radius: 999px;
+    transition: background .25s ease, color .25s ease;
+  }
+  nav.tabs a.active{
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(15,118,110,0.25);
+  }
+  nav.tabs a:not(.active):hover{ color: var(--ink); background: rgba(15,118,110,0.06); }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-size: clamp(32px, 5vw, 44px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+  }
+
+  .sub{
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 46ch;
+    margin: 0 0 36px;
+  }
+
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+  }
+
+  label.field-label{
+    display:block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  textarea{
+    width: 100%;
+    min-height: 160px;
+    resize: vertical;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    background: #FCFDFC;
+    outline: none;
+    box-shadow: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  textarea:focus{ border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(20,184,166,0.18); }
+  textarea::placeholder{ color: var(--placeholder); }
+
+  .row{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 16px;
+    gap: 12px;
+  }
+  @media (max-width: 560px){
+    .panel{ padding: 20px; border-radius: 16px; }
+    .row{ flex-direction: column; align-items: stretch; }
+    .row button.submit{ width: 100%; }
+  }
+
+  .hint{
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  button.submit{
+    appearance:none;
+    border:none;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    color: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px 22px;
+    min-height: 44px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: transform .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  button.submit:hover{ box-shadow: 0 8px 20px rgba(15,118,110,0.28); transform: translateY(-1px); }
+  button.submit:active{ transform: scale(0.97); }
+  button.submit:disabled{ opacity:0.55; cursor:default; transform:none; box-shadow:none; }
+  button.submit:focus-visible{ outline: 2px solid var(--accent-hover); outline-offset:2px; }
+
+  #result{
+    margin-top: 28px;
+    display:none;
+  }
+  #result.show{ display:block; animation: rise .35s ease; }
+  @keyframes rise{ from{ opacity:0; transform: translateY(8px);} to{opacity:1; transform:none;} }
+
+  @keyframes fadeInUp{ from{ opacity:0; transform: translateY(10px);} to{ opacity:1; transform:none; } }
+
+  @keyframes pulseDot{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:0.4; transform:scale(0.75);} }
+  #listeningDot{ animation: pulseDot 1s ease-in-out infinite; }
+  @keyframes micPulse{ 0%{ box-shadow:0 0 0 0 rgba(176,69,61,0.35);} 70%{ box-shadow:0 0 0 8px rgba(176,69,61,0);} 100%{ box-shadow:0 0 0 0 rgba(176,69,61,0);} }
+  #micBtn.recording{ animation: micPulse 1.4s ease-out infinite; }
+  header{ animation: fadeInUp .5s ease-out both; }
+  nav.tabs{ animation: fadeInUp .5s ease-out .08s both; }
+  h1{ animation: fadeInUp .5s ease-out .16s both; }
+  .sub{ animation: fadeInUp .5s ease-out .22s both; }
+  .panel{ animation: fadeInUp .5s ease-out .28s both; }
+
+  .reading{
+    display:flex;
+    gap:24px;
+    align-items:center;
+    padding: 24px;
+    border-radius: 16px;
+  }
+  .reading.low{ background: var(--low-bg); }
+  .reading.moderate{ background: var(--moderate-bg); }
+  .reading.high{ background: var(--high-bg); }
+
+  .gauge{ flex-shrink:0; text-align:center; }
+  .gauge svg{ width:96px; height:96px; display:block; }
+  .gauge-track{ fill:none; stroke: rgba(27,43,41,0.08); stroke-width: 8; }
+  .gauge-fill{ fill:none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1); }
+  .gauge-fill.low{ stroke: var(--low); }
+  .gauge-fill.moderate{ stroke: var(--moderate); }
+  .gauge-fill.high{ stroke: var(--high); }
+  .gauge-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+  .gauge-caption{
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    letter-spacing: 0.01em;
+  }
+
+  .reading-body .level{
+    font-family:'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .level.low{ color: var(--low); }
+  .level.moderate{ color: var(--moderate); }
+  .level.high{ color: var(--high); }
+
+  .reading-body .rec{
+    font-size: 15px;
+    color: var(--ink);
+    max-width: 40ch;
+  }
+
+  .section-title{
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 26px 0 10px;
+  }
+
+  .factors{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .factor{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+
+  .warnings{
+    margin-top: 40px;
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+  }
+  .warnings ul{
+    list-style:none;
+    margin:0; padding:0;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+  }
+  .warnings li{
+    font-size: 14px;
+    color: var(--ink-soft);
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .warnings li::before{
+    content:"";
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--high);
+    margin-top:6px;
+    flex-shrink:0;
+  }
+
+  .history{
+    margin-top: 32px;
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+  }
+  .history-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .history-head .section-title{ margin: 0; }
+  .clear-btn{
+    appearance:none;
+    border:none;
+    background:none;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-family:'IBM Plex Sans', sans-serif;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+  .clear-btn:hover{ color: var(--ink); }
+  #historyList{ list-style:none; margin:0; padding:0; }
+  .history-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13.5px;
+  }
+  .history-item:last-child{ border-bottom:none; }
+  .history-dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .history-dot.low{ background: var(--low); }
+  .history-dot.moderate{ background: var(--moderate); }
+  .history-dot.high{ background: var(--high); }
+  .history-date{
+    color: var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    flex-shrink:0;
+  }
+  .history-snippet{
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .disclaimer{
+    margin-top: 32px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height:1.6;
+  }
+
+  @media (max-width: 480px){
+    .reading{ flex-direction:column; align-items:flex-start; }
+    .warnings ul{ grid-template-columns: 1fr; }
+  }  .feature-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .feature-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--card-shadow);
+  }
+  .feature-icon{
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom: 12px;
+  }
+  .feature-title{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+  .feature-text{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin:0;
+  }
+  @media (max-width: 760px){
+    .feature-grid{ grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  }
+  @media (max-width: 560px){
+    .feature-grid{ grid-template-columns: 1fr; gap: 12px; margin-top: 20px; }
+    .feature-card{ padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header style="justify-content: space-between; margin-bottom: 20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M5.5 12.5h2.8l1.4-3.6 2 6.2 1.4-3.6h3" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand">Care<span>Lens</span></div>
+    </div>
+    <nav class="tabs" style="margin-bottom:0;">
+      <a href="symptom-checker.html" class="active">Symptom Check</a>
+      <a href="medicine-scanner.html">Medicine Scan</a>
+    </nav>
+    <button type="button" onclick="document.getElementById('historySection').scrollIntoView({behavior:'smooth'})" style="display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:8px 16px; font-family:'IBM Plex Sans', sans-serif; font-size:13.5px; font-weight:600; color:var(--ink-soft); cursor:pointer; box-shadow: var(--card-shadow);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      History
+    </button>
+  </header>
+
+  <div class="hero-row">
+    <div class="hero-text">
+      <h1>Tell us what you're feeling.</h1>
+      <p class="sub">Describe your symptoms in your own words. CareLens reads the pattern and gives you a risk reading — not a diagnosis — so you know how urgently to act.</p>
+    </div>
+    <div class="hero-illustration">
+      <svg viewBox="0 0 200 200" width="100%" height="100%">
+        <circle cx="100" cy="100" r="92" fill="var(--accent-soft)"/>
+        <circle cx="34" cy="46" r="6" fill="var(--low-bg)"/>
+        <circle cx="168" cy="150" r="4.5" fill="var(--moderate-bg)"/>
+        <rect x="86" y="60" width="60" height="80" rx="6" fill="#FFFFFF" stroke="var(--accent)" stroke-width="2"/>
+        <rect x="104" y="52" width="24" height="12" rx="3" fill="var(--accent)"/>
+        <path d="M96 82h6M96 92h20M96 100h20M96 108h14" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M99 82l3 3 4-6" stroke="var(--low)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M60 66c0 14 0 22 10 22s10-8 10-16" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <circle cx="60" cy="62" r="4" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+        <circle cx="80" cy="62" r="4" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+        <circle cx="70" cy="92" r="5" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+        <path d="M132 120c8-10 20-10 24 0s-4 20-24 34c-20-14-28-24-24-34s16-10 24 0z" fill="var(--accent)"/>
+        <path d="M118 130h8l4-8 5 12 4-6h6" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="content">
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <label class="field-label" for="symptoms" style="margin-bottom:0;">Your symptoms</label>
+      <div id="langWrap" style="display:flex; align-items:center; gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.55;">
+          <path d="M4 5h9M9 3v2M11.5 5c-.6 3.5-2.8 6.3-6 8M7 9c1.2 1.7 3 3 5 3.5M13 20l4-9 4 9M14.5 17h5" stroke="var(--ink-soft)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <select id="langSelect" style="font-family:'IBM Plex Sans', sans-serif; font-size:12.5px; color:var(--ink-soft); border:1px solid var(--line); border-radius:8px; padding:4px 8px; background:#FCFDFC; outline:none; cursor:pointer;">
+          <option value="en-IN">English</option>
+          <option value="ta-IN">தமிழ் Tamil</option>
+          <option value="hi-IN">हिंदी Hindi</option>
+          <option value="te-IN">తెలుగు Telugu</option>
+          <option value="ml-IN">മലയാളം Malayalam</option>
+          <option value="kn-IN">ಕನ್ನಡ Kannada</option>
+        </select>
+      </div>
+    </div>
+    <div style="position:relative;">
+      <textarea id="symptoms" placeholder="e.g. sudden difficulty breathing, wheezing, chest feels very tight" style="padding-right:52px;"></textarea>
+      <button type="button" id="micBtn" title="Speak your symptoms" aria-label="Speak your symptoms"
+        style="position:absolute; right:10px; bottom:10px; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:#FCFDFC; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: background .15s ease, border-color .15s ease;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="var(--ink-soft)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="var(--ink-soft)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div id="listeningBadge" style="display:none; position:absolute; right:6px; bottom:50px; align-items:center; gap:6px; background:var(--high); color:white; font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; white-space:nowrap; box-shadow:0 2px 8px rgba(176,69,61,0.35);">
+        <span id="listeningDot" style="width:7px; height:7px; border-radius:50%; background:white; display:inline-block;"></span>
+        Listening…
+      </div>
+    </div>
+    <p id="langNote" style="display:none; font-size:12px; color:var(--ink-soft); margin:8px 0 0;">Your speech will be automatically translated to English before analysis — you'll see the translation, so you can fix anything that got lost in translation.</p>
+    <div class="row">
+      <span class="hint" id="hint">Be specific — onset, location, and severity all help.</span>
+      <button class="submit" id="submitBtn">Check symptoms</button>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.8-9.8-9.4C.7 8 2 4.5 5.4 3.6c2-.5 3.9.3 5 1.9 1.1-1.6 3-2.4 5-1.9 3.4.9 4.7 4.4 3.2 8C19.5 16.2 12 21 12 21z" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </div>
+      <p class="feature-title">AI risk assessment</p>
+      <p class="feature-text">Advanced AI analyzes your symptoms and provides a risk reading.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="17" rx="2" stroke="var(--accent)" stroke-width="1.6"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1M8 11h8M8 15h5" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <p class="feature-title">Not a diagnosis</p>
+      <p class="feature-text">CareLens is not a substitute for professional medical advice.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="var(--accent)" stroke-width="1.6"/><path d="M8 11V8a4 4 0 018 0v3" stroke="var(--accent)" stroke-width="1.6"/></svg>
+      </div>
+      <p class="feature-title">Privacy first</p>
+      <p class="feature-text">Your data stays on your device and is never shared with anyone.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="var(--accent)" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <p class="feature-title">Act early</p>
+      <p class="feature-text">Early awareness helps you take the right action at the right time.</p>
+    </div>
+  </div>
+
+  <div id="emptyState" style="text-align:center; padding: 36px 20px; color: var(--ink-soft);">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="margin:0 auto 12px; opacity:0.5;">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--ink-soft)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M5.5 12.5h2.8l1.4-3.6 2 6.2 1.4-3.6h3" stroke="var(--ink-soft)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <p style="font-size:14px; margin:0;">Your reading will appear here once you describe your symptoms.</p>
+  </div>
+
+  <div id="result" aria-live="polite">
+    <div class="reading" id="reading">
+      <div class="gauge">
+        <svg viewBox="0 0 100 100">
+          <circle class="gauge-track" cx="50" cy="50" r="42"/>
+          <circle class="gauge-fill" id="gaugeFill" cx="50" cy="50" r="42" transform="rotate(-90 50 50)"/>
+          <text class="gauge-num" id="gaugeNum" x="50" y="55">0%</text>
+        </svg>
+        <div class="gauge-caption">match confidence</div>
+      </div>
+      <div class="reading-body">
+        <p class="level" id="levelText">—</p>
+        <p class="rec" id="recText"></p>
+      </div>
+    </div>
+
+    <div id="explanationSection" style="display:none;">
+      <p class="section-title">What this means</p>
+      <p class="section-text" id="explanationText" style="font-size:15px; color:var(--ink); line-height:1.6;"></p>
+    </div>
+
+    <div id="factorsSection" style="display:none;">
+      <p class="section-title">Why this reading</p>
+      <div class="factors" id="factors"></div>
+    </div>
+
+    <div id="selfCareSection" style="display:none;">
+      <p class="section-title">What you can do</p>
+      <ul id="selfCareList" style="margin:0; padding-left:20px; font-size:14.5px; color:var(--ink); line-height:1.8;"></ul>
+    </div>
+  </div>
+
+  <div class="warnings">
+    <p class="section-title">Always seek care immediately if you notice</p>
+    <ul id="warningsList"></ul>
+  </div>
+
+  <div class="history" id="historySection" style="display:none;">
+    <div class="history-head">
+      <p class="section-title">Recent checks</p>
+      <button class="clear-btn" id="clearHistory">Clear</button>
+    </div>
+    <ul id="historyList"></ul>
+  </div>
+
+  <p class="disclaimer">CareLens gives a general risk reading based on described symptoms. It is not a medical diagnosis and does not replace professional care. If you're in doubt, or symptoms are severe or worsening, contact a healthcare provider.</p>
+
+  </div>
+
+</div>
+
+<script>
+  // Point this at your deployed Flask backend before going live.
+  // Local dev: http://127.0.0.1:5000/assess-symptoms
+  // After Render deploy: https://your-render-app.onrender.com/assess-symptoms
+  const API_URL = "http://127.0.0.1:5000/assess-symptoms";
+  const HISTORY_KEY = "carelens_history";
+  const MAX_HISTORY = 5;
+
+  const CIRC = 2 * Math.PI * 42;
+
+  const submitBtn = document.getElementById('submitBtn');
+  const textarea = document.getElementById('symptoms');
+  const hint = document.getElementById('hint');
+
+  function setHint(text, isError){
+    hint.textContent = text;
+    hint.style.color = isError ? '#B0453D' : '';
+  }
+  const result = document.getElementById('result');
+  const reading = document.getElementById('reading');
+  const gaugeFill = document.getElementById('gaugeFill');
+  const gaugeNum = document.getElementById('gaugeNum');
+  const levelText = document.getElementById('levelText');
+  const recText = document.getElementById('recText');
+  const factorsSection = document.getElementById('factorsSection');
+  const factorsEl = document.getElementById('factors');
+  const explanationSection = document.getElementById('explanationSection');
+  const explanationText = document.getElementById('explanationText');
+  const selfCareSection = document.getElementById('selfCareSection');
+  const selfCareList = document.getElementById('selfCareList');
+  const warningsList = document.getElementById('warningsList');
+  const historySection = document.getElementById('historySection');
+  const historyList = document.getElementById('historyList');
+  const clearHistoryBtn = document.getElementById('clearHistory');
+
+  const DEFAULT_WARNINGS = [
+    "Difficulty breathing",
+    "Chest pain or pressure",
+    "Sudden confusion or slurred speech",
+    "Severe or worsening symptoms"
+  ];
+
+  function renderWarnings(list){
+    warningsList.innerHTML = "";
+    list.forEach(w => {
+      const li = document.createElement('li');
+      li.textContent = w;
+      warningsList.appendChild(li);
+    });
+  }
+  renderWarnings(DEFAULT_WARNINGS);
+
+  function riskKeyFromLabel(label){
+    const l = (label || '').toLowerCase();
+    if (l.includes('low')) return 'low';
+    if (l.includes('high')) return 'high';
+    return 'moderate';
+  }
+
+  function loadHistory(){
+    try{
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+
+  function saveHistoryEntry(text, data){
+    const key = riskKeyFromLabel(data.risk_level);
+    const entry = {
+      date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      key,
+      icon: data.risk_icon || '',
+      level: data.risk_level,
+      snippet: text.length > 42 ? text.slice(0, 42) + '…' : text
+    };
+    const history = loadHistory();
+    history.unshift(entry);
+    while (history.length > MAX_HISTORY) history.pop();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory(){
+    const history = loadHistory();
+    if (!history.length){
+      historySection.style.display = 'none';
+      return;
+    }
+    historySection.style.display = 'block';
+    historyList.innerHTML = '';
+    history.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'history-item';
+      li.innerHTML = `
+        <span class="history-dot ${item.key}"></span>
+        <span class="history-date">${item.date}</span>
+        <span class="history-snippet">${item.snippet}</span>
+      `;
+      historyList.appendChild(li);
+    });
+  }
+
+  clearHistoryBtn.addEventListener('click', () => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  });
+
+  renderHistory();
+
+  function showResult(data, submittedText){
+    const key = riskKeyFromLabel(data.risk_level);
+
+    reading.className = 'reading ' + key;
+    levelText.className = 'level ' + key;
+    levelText.textContent = (data.risk_icon || '') + ' ' + data.risk_level;
+    recText.textContent = data.recommendation;
+
+    // Show a gentle nudge when the input was too brief to trust confidently
+    let noteEl = document.getElementById('lowInfoNote');
+    if (data.note){
+      if (!noteEl){
+        noteEl = document.createElement('p');
+        noteEl.id = 'lowInfoNote';
+        noteEl.style.cssText = 'font-size:13px; color:var(--ink-soft); margin-top:14px; font-style:italic;';
+        reading.parentNode.insertBefore(noteEl, reading.nextSibling);
+      }
+      noteEl.textContent = data.note;
+      noteEl.style.display = 'block';
+    } else if (noteEl){
+      noteEl.style.display = 'none';
+    }
+
+    gaugeFill.setAttribute('class', 'gauge-fill ' + key);
+    const pct = Math.max(0, Math.min(100, data.confidence));
+    const offset = CIRC - (CIRC * pct / 100);
+    gaugeFill.style.strokeDasharray = CIRC;
+    gaugeFill.style.strokeDashoffset = CIRC;
+    requestAnimationFrame(() => { gaugeFill.style.strokeDashoffset = offset; });
+    gaugeNum.textContent = pct + '%';
+
+    if (data.explanation){
+      explanationSection.style.display = 'block';
+      explanationText.textContent = data.explanation;
+    } else {
+      explanationSection.style.display = 'none';
+    }
+
+    if (data.contributing_factors && data.contributing_factors.length){
+      factorsSection.style.display = 'block';
+      factorsEl.innerHTML = '';
+      data.contributing_factors.forEach(f => {
+        const span = document.createElement('span');
+        span.className = 'factor';
+        span.textContent = f;
+        factorsEl.appendChild(span);
+      });
+    } else {
+      factorsSection.style.display = 'none';
+    }
+
+    if (data.self_care && data.self_care.length){
+      selfCareSection.style.display = 'block';
+      selfCareList.innerHTML = '';
+      data.self_care.forEach(tip => {
+        const li = document.createElement('li');
+        li.textContent = tip;
+        selfCareList.appendChild(li);
+      });
+    } else {
+      selfCareSection.style.display = 'none';
+    }
+
+    if (data.warning_signs && data.warning_signs.length){
+      renderWarnings(data.warning_signs);
+    }
+
+    result.classList.add('show');
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    saveHistoryEntry(submittedText, data);
+  }
+
+  async function checkSymptoms(){
+    const text = textarea.value.trim();
+    if (!text){
+      hint.textContent = "Type a few symptoms first.";
+      hint.style.color = '#B0453D';
+      return;
+    }
+    hint.style.color = '';
+    hint.textContent = 'Be specific — onset, location, and severity all help.';
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Checking…';
+
+    try{
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symptoms: text })
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok){
+        const message = (data && data.error) ? data.error : 'Something went wrong. Please try again.';
+        hint.textContent = message;
+        hint.style.color = '#B0453D';
+        return;
+      }
+
+      showResult(data, text);
+    } catch(err){
+      hint.textContent = "Couldn't reach CareLens right now — check the backend is running.";
+      hint.style.color = '#B0453D';
+      console.error(err);
+    } finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Check symptoms';
+    }
+  }
+
+  submitBtn.addEventListener('click', checkSymptoms);
+
+  // --- Voice input (browser-native, no backend needed) ---
+  const micBtn = document.getElementById('micBtn');
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognitionAPI){
+    // Not supported (e.g. Firefox, some Safari versions) — hide rather than
+    // show a button that silently does nothing.
+    micBtn.style.display = 'none';
+    const langWrapEl = document.getElementById('langWrap');
+    if (langWrapEl) langWrapEl.style.display = 'none';
+  } else {
+    const recognition = new SpeechRecognitionAPI();
+    const langSelect = document.getElementById('langSelect');
+    const langNote = document.getElementById('langNote');
+
+    recognition.lang = langSelect.value;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    langSelect.addEventListener('change', () => {
+      recognition.lang = langSelect.value;
+      langNote.style.display = langSelect.value === 'en-IN' ? 'none' : 'block';
+    });
+
+    let isListening = false;
+    let resultReceived = false;
+    const listeningBadge = document.getElementById('listeningBadge');
+
+    function setListeningState(on){
+      isListening = on;
+      micBtn.style.background = on ? 'var(--high-bg)' : '#FCFDFC';
+      micBtn.style.borderColor = on ? 'var(--high)' : 'var(--line)';
+      micBtn.title = on ? 'Listening… click to stop' : 'Speak your symptoms';
+      micBtn.classList.toggle('recording', on);
+      listeningBadge.style.display = on ? 'flex' : 'none';
+    }
+
+    let listeningTimeout = null;
+
+    micBtn.addEventListener('click', () => {
+      if (isListening){
+        recognition.stop();
+        return;
+      }
+      try{
+        console.log('CareLens: starting recognition, lang =', recognition.lang);
+        recognition.start();
+        resultReceived = false;
+        setListeningState(true);
+        setHint('Listening…', false);
+
+        clearTimeout(listeningTimeout);
+        listeningTimeout = setTimeout(() => {
+          if (isListening){
+            console.warn('CareLens: recognition timed out with no result, forcing stop');
+            recognition.stop();
+            setHint("Voice input timed out — try again, or type instead.", true);
+          }
+        }, 10000);
+      } catch(err){
+        console.error('CareLens voice input error:', err);
+        setHint('Could not start the microphone — see browser console for details.', true);
+      }
+    });
+
+    async function translateToEnglish(text, langCode){
+      const source = langCode.split('-')[0];
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|en`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Translation request failed');
+      const data = await res.json();
+      const translated = data && data.responseData && data.responseData.translatedText;
+      if (!translated) throw new Error('No translation returned');
+      return translated;
+    }
+
+    recognition.addEventListener('result', async (e) => {
+      try{
+        if (!e.results || !e.results.length || !e.results[0] || !e.results[0][0]){
+          setHint("Didn't catch any words — try speaking again, a bit closer to the mic.", true);
+          return;
+        }
+
+        const transcript = e.results[0][0].transcript;
+        const currentLang = recognition.lang;
+
+        if (!transcript || !transcript.trim()){
+          setHint("Didn't catch any words — try again.", true);
+          return;
+        }
+
+        resultReceived = true;
+
+        if (currentLang.startsWith('en')){
+          textarea.value = textarea.value ? textarea.value.trim() + ' ' + transcript : transcript;
+          hint.style.color = '';
+          hint.textContent = 'Be specific — onset, location, and severity all help.';
+          return;
+        }
+
+        setHint('Translating to English…', false);
+        try{
+          const translated = await translateToEnglish(transcript, currentLang);
+          textarea.value = textarea.value ? textarea.value.trim() + ' ' + translated : translated;
+
+          langNote.style.display = 'block';
+          langNote.style.color = 'var(--ink-soft)';
+          langNote.textContent = `Heard: "${transcript}" — translated to English above. Double-check it captured your meaning correctly.`;
+
+          hint.style.color = '';
+          hint.textContent = 'Be specific — onset, location, and severity all help.';
+        } catch(translateErr){
+          console.error('CareLens translation error:', translateErr);
+          textarea.value = textarea.value ? textarea.value.trim() + ' ' + transcript : transcript;
+          setHint('Translation failed — added your original words instead. You can edit them.', true);
+        }
+      } catch(err){
+        console.error('CareLens voice result handling error:', err);
+        setHint('Something went wrong processing your speech — please try again or type instead.', true);
+      }
+    });
+
+    recognition.addEventListener('end', () => {
+      clearTimeout(listeningTimeout);
+      setListeningState(false);
+      if (!resultReceived){
+        setHint("Didn't catch anything — some browsers support fewer languages for voice input. Try English, or type instead.", true);
+      }
+    });
+
+    recognition.addEventListener('error', (e) => {
+      setListeningState(false);
+      console.error('CareLens voice recognition error:', e.error);
+
+      if (e.error === 'not-allowed' || e.error === 'permission-denied'){
+        setHint("Microphone access was blocked — check your browser's site permissions (padlock icon in the address bar).", true);
+      } else if (e.error === 'no-speech'){
+        setHint("Didn't catch that — try again, and speak right after clicking the mic.", true);
+      } else if (e.error === 'audio-capture'){
+        setHint('No microphone was found — check that one is connected and not in use by another app.', true);
+      } else if (e.error === 'network'){
+        setHint('Voice recognition needs an internet connection — check yours and try again.', true);
+      } else {
+        setHint(`Voice input had a problem (${e.error}) — you can still type.`, true);
+      }
+    });
+  }
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) checkSymptoms();
+  });
+</script>
+</body>
+</html>

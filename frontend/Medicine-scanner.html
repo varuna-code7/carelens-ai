@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareLens — Medicine Scan</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232F6F62'/%3E%3Cpath d='M17.4 8.1a3.6 3.6 0 0 0-5.1 0l-.3.3-.3-.3a3.6 3.6 0 1 0-5.1 5.1l.3.3L12 19l5.1-5.5.3-.3a3.6 3.6 0 0 0 0-5.1z' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6.5 12.5h2l1-2.4L11 15l1-2.5h2.2' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F8FAFC;
+    --bg-gradient-top: #F0FDFA;
+    --surface: #FFFFFF;
+    --ink: #0F172A;
+    --ink-soft: #475569;
+    --placeholder: #94A3B8;
+    --line: #E2E8F0;
+    --accent: #0F766E;
+    --accent-hover: #115E59;
+    --accent-2: #14B8A6;
+    --accent-cyan: #06B6D4;
+    --accent-soft: #F0FDFA;
+    --low: #10B981;
+    --low-bg: #D1FAE5;
+    --moderate: #F59E0B;
+    --moderate-bg: #FEF3C7;
+    --high: #EF4444;
+    --high-bg: #FEE2E2;
+    --card-shadow: 0 10px 30px rgba(15,118,110,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg) 420px);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+  }
+
+  .wrap{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  .content{
+    max-width: 720px;
+    margin: 0;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    row-gap: 14px;
+  }
+  @media (max-width: 600px){
+    header{ margin-bottom: 20px; }
+  }
+
+  .mark{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .mark svg{ width:18px; height:18px; }
+
+  .brand{
+    font-family:'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .brand span{ color: var(--accent); }
+
+  nav.tabs{
+    display:flex;
+    gap: 6px;
+    margin-bottom: 36px;
+    background: var(--accent-soft);
+    padding: 4px;
+    border-radius: 999px;
+    width: fit-content;
+  }
+  nav.tabs a{
+    text-decoration:none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 8px 18px;
+    border-radius: 999px;
+    transition: background .25s ease, color .25s ease;
+  }
+  nav.tabs a.active{
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(15,118,110,0.25);
+  }
+  nav.tabs a:not(.active):hover{ color: var(--ink); background: rgba(15,118,110,0.06); }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-size: clamp(32px, 5vw, 44px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+  }
+
+  .sub{
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 46ch;
+    margin: 0 0 36px;
+  }
+
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+  }
+
+  .field-label{
+    display:block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  .dropzone{
+    border: 1.5px dashed var(--line);
+    border-radius: 14px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+    background: #FCFDFC;
+  }
+  .dropzone.dragover{ border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone input{ display:none; }
+  .dropzone-icon{
+    width: 40px; height: 40px;
+    margin: 0 auto 12px;
+    color: var(--ink-soft);
+  }
+  .dropzone-text{ font-size: 14.5px; color: var(--ink-soft); }
+  .dropzone-text strong{ color: var(--accent); font-weight: 600; }
+  .dropzone-hint{ font-size: 12.5px; color: #9AA8A2; margin-top: 6px; }
+
+  .preview{
+    display:none;
+    align-items: center;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .preview.show{ display:flex; }
+  .preview img{
+    width: 64px; height: 64px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+  .preview-name{ font-size: 13.5px; color: var(--ink); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .preview-remove{
+    appearance:none; border:none; background:none;
+    color: var(--ink-soft); font-size: 12.5px; text-decoration: underline;
+    cursor:pointer; flex-shrink:0;
+  }
+  .preview-remove:hover{ color: var(--high); }
+
+  .row{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 18px;
+    gap: 12px;
+  }
+  @media (max-width: 560px){
+    .panel{ padding: 20px; border-radius: 16px; }
+    .row{ flex-direction: column; align-items: stretch; }
+    .row button.submit{ width: 100%; }
+    .search-row{ flex-direction: column; }
+    .search-row button{ width: 100%; }
+  }
+
+  .hint{
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  button.submit{
+    appearance:none;
+    border:none;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    color: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px 22px;
+    min-height: 44px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: transform .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  button.submit:hover{ box-shadow: 0 8px 20px rgba(15,118,110,0.28); transform: translateY(-1px); }
+  button.submit:active{ transform: scale(0.97); }
+  button.submit:disabled{ opacity:0.55; cursor:default; transform:none; }
+  button.submit:focus-visible{ outline: 2px solid var(--ink); outline-offset:2px; }
+
+  #result{
+    margin-top: 28px;
+    display:none;
+  }
+  #result.show{ display:block; animation: rise .35s ease; }
+  @keyframes rise{ from{ opacity:0; transform: translateY(8px);} to{opacity:1; transform:none;} }
+
+  @keyframes fadeInUp{ from{ opacity:0; transform: translateY(10px);} to{ opacity:1; transform:none; } }
+  header{ animation: fadeInUp .5s ease-out both; }
+  nav.tabs{ animation: fadeInUp .5s ease-out .08s both; }
+  h1{ animation: fadeInUp .5s ease-out .16s both; }
+  .sub{ animation: fadeInUp .5s ease-out .22s both; }
+  .panel{ animation: fadeInUp .5s ease-out .28s both; }
+
+  .med-card{
+    background: var(--accent-soft);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .med-name{
+    font-family:'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0 0 4px;
+  }
+  .med-confidence{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .not-found{
+    background: var(--moderate-bg);
+    border-radius: 16px;
+    padding: 24px;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .section-title{
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 24px 0 8px;
+  }
+  .section-text{
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  .precaution-box{
+    background: var(--high-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  details.raw-text{
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  details.raw-text summary{ cursor: pointer; font-weight: 600; }
+  details.raw-text pre{
+    white-space: pre-wrap;
+    background: #FCFDFC;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  .disclaimer{
+    margin-top: 32px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height:1.6;
+  }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin: 24px 0;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .divider::before, .divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background: var(--line);
+  }
+
+  .search-row{
+    display:flex;
+    gap:10px;
+  }
+  .search-row input{
+    flex:1;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: #FCFDFC;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  .search-row input:focus{ border-color: var(--accent); }
+  .search-row input::placeholder{ color: #9AA8A2; }
+  .search-row button{ flex-shrink:0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header style="justify-content: space-between; margin-bottom: 20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M5.5 12.5h2.8l1.4-3.6 2 6.2 1.4-3.6h3" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand">Care<span>Lens</span></div>
+    </div>
+    <nav class="tabs" style="margin-bottom:0;">
+      <a href="symptom-checker.html">Symptom Check</a>
+      <a href="medicine-scanner.html" class="active">Medicine Scan</a>
+    </nav>
+    <a href="symptom-checker.html#historySection" style="display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:8px 16px; font-family:'IBM Plex Sans', sans-serif; font-size:13.5px; font-weight:600; color:var(--ink-soft); text-decoration:none; box-shadow: var(--card-shadow);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      History
+    </a>
+  </header>
+
+  <div class="content">
+  <h1>What's this medicine?</h1>
+  <p class="sub">Upload a photo of a printed medicine strip, box, or label. CareLens reads it and explains what it's for and what to watch out for — in plain language.</p>
+
+  <div class="panel">
+    <label class="field-label">Medicine photo</label>
+
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
+      <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 16V4M12 4L7 9M12 4l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="dropzone-text"><strong>Click to upload</strong> or drag a photo here</div>
+      <div class="dropzone-hint">Printed text only (not handwritten) · JPEG, PNG, WEBP · up to 8MB</div>
+    </div>
+
+    <div class="preview" id="preview">
+      <img id="previewImg" alt="">
+      <span class="preview-name" id="previewName"></span>
+      <button class="preview-remove" id="previewRemove">Remove</button>
+    </div>
+
+    <div class="row">
+      <span class="hint" id="hint">A clear, well-lit photo of the medicine name works best.</span>
+      <button class="submit" id="submitBtn" disabled>Scan medicine</button>
+    </div>
+  </div>
+
+  <div class="divider">
+    <span>or</span>
+  </div>
+
+  <div class="panel">
+    <label class="field-label" for="nameInput">Search by name</label>
+    <div class="search-row">
+      <input type="text" id="nameInput" placeholder="e.g. Dolo 650, Azithromycin">
+      <button class="submit" id="searchBtn">Search</button>
+    </div>
+    <div class="row" style="margin-top: 10px;">
+      <span class="hint" id="searchHint">Know the tablet name already? Search it directly — no photo needed.</span>
+    </div>
+  </div>
+
+  <div id="emptyState" style="text-align:center; padding: 36px 20px; color: var(--ink-soft);">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="margin:0 auto 12px; opacity:0.5;">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--ink-soft)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M5.5 12.5h2.8l1.4-3.6 2 6.2 1.4-3.6h3" stroke="var(--ink-soft)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <p style="font-size:14px; margin:0;">Upload a photo to see what the medicine is and how to use it safely.</p>
+  </div>
+
+  <div id="result" aria-live="polite"></div>
+
+  <p class="disclaimer">CareLens provides general medicine information based on what it reads from your photo. It is not medical advice and does not replace guidance from a pharmacist or doctor. Always confirm dosage and interactions with a professional.</p>
+
+  </div>
+
+</div>
+
+<script>
+  const API_URL = "http://127.0.0.1:5000/scan-medicine";
+  const MAX_BYTES = 8 * 1024 * 1024;
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('preview');
+  const previewImg = document.getElementById('previewImg');
+  const previewName = document.getElementById('previewName');
+  const previewRemove = document.getElementById('previewRemove');
+  const submitBtn = document.getElementById('submitBtn');
+  const hint = document.getElementById('hint');
+  const result = document.getElementById('result');
+
+  let selectedFile = null;
+
+  function setHint(text, isError){
+    hint.textContent = text;
+    hint.style.color = isError ? '#B0453D' : '';
+  }
+
+  function handleFile(file){
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)){
+      setHint('Please choose a JPEG, PNG, or WEBP image.', true);
+      return;
+    }
+    if (file.size > MAX_BYTES){
+      setHint('That image is over 8MB — please choose a smaller photo.', true);
+      return;
+    }
+
+    selectedFile = file;
+    setHint('A clear, well-lit photo of the medicine name works best.', false);
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewName.textContent = file.name;
+      preview.classList.add('show');
+      dropzone.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+
+    submitBtn.disabled = false;
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+  ['dragover', 'dragenter'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('dragover'); })
+  );
+  ['dragleave', 'drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('dragover'); })
+  );
+  dropzone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    handleFile(file);
+  });
+
+  previewRemove.addEventListener('click', () => {
+    selectedFile = null;
+    fileInput.value = '';
+    preview.classList.remove('show');
+    dropzone.style.display = 'block';
+    submitBtn.disabled = true;
+    result.classList.remove('show');
+    result.innerHTML = '';
+  });
+
+  function renderResult(data){
+    result.innerHTML = '';
+
+    if (!data.found){
+      const box = document.createElement('div');
+      box.className = 'not-found';
+      box.textContent = data.message || "Couldn't confidently identify this medicine.";
+      result.appendChild(box);
+    } else {
+      const card = document.createElement('div');
+      card.className = 'med-card';
+      card.innerHTML = `
+        <p class="med-name">${data.medicine}</p>
+        <p class="med-confidence">match confidence: ${data.confidence}%</p>
+      `;
+      result.appendChild(card);
+
+      const useTitle = document.createElement('p');
+      useTitle.className = 'section-title';
+      useTitle.textContent = "What it's for";
+      result.appendChild(useTitle);
+
+      const useText = document.createElement('p');
+      useText.className = 'section-text';
+      useText.textContent = data.use;
+      result.appendChild(useText);
+
+      const precTitle = document.createElement('p');
+      precTitle.className = 'section-title';
+      precTitle.textContent = 'Precautions';
+      result.appendChild(precTitle);
+
+      const precBox = document.createElement('div');
+      precBox.className = 'precaution-box';
+      precBox.textContent = data.precautions;
+      result.appendChild(precBox);
+    }
+
+    if (data.raw_text){
+      const details = document.createElement('details');
+      details.className = 'raw-text';
+      details.innerHTML = `<summary>Show raw scanned text</summary><pre>${data.raw_text.replace(/</g, '&lt;')}</pre>`;
+      result.appendChild(details);
+    }
+
+    result.classList.add('show');
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function scanMedicine(){
+    if (!selectedFile) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Scanning…';
+    setHint('Reading the image…', false);
+
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+
+    try{
+      const res = await fetch(API_URL, { method: 'POST', body: formData });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok){
+        const message = (data && data.error) ? data.error : 'Something went wrong. Please try again.';
+        setHint(message, true);
+        return;
+      }
+
+      setHint('A clear, well-lit photo of the medicine name works best.', false);
+      renderResult(data);
+    } catch(err){
+      setHint("Couldn't reach CareLens right now — check the backend is running.", true);
+      console.error(err);
+    } finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Scan medicine';
+    }
+  }
+
+  submitBtn.addEventListener('click', scanMedicine);
+
+  // --- Search by name ---
+  const SEARCH_URL = "http://127.0.0.1:5000/search-medicine";
+  const nameInput = document.getElementById('nameInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const searchHint = document.getElementById('searchHint');
+
+  function setSearchHint(text, isError){
+    searchHint.textContent = text;
+    searchHint.style.color = isError ? '#B0453D' : '';
+  }
+
+  async function searchMedicine(){
+    const name = nameInput.value.trim();
+    if (!name){
+      setSearchHint('Type a medicine name first.', true);
+      return;
+    }
+    if (name.length < 3){
+      setSearchHint('Enter at least 3 characters.', true);
+      return;
+    }
+
+    searchBtn.disabled = true;
+    searchBtn.textContent = 'Searching…';
+    setSearchHint('Looking that up…', false);
+
+    try{
+      const res = await fetch(SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok){
+        const message = (data && data.error) ? data.error : 'Something went wrong. Please try again.';
+        setSearchHint(message, true);
+        return;
+      }
+
+      setSearchHint('Know the tablet name already? Search it directly — no photo needed.', false);
+      renderResult(data); // no raw_text on this path, so that section is simply skipped
+    } catch(err){
+      setSearchHint("Couldn't reach CareLens right now — check the backend is running.", true);
+      console.error(err);
+    } finally{
+      searchBtn.disabled = false;
+      searchBtn.textContent = 'Search';
+    }
+  }
+
+  searchBtn.addEventListener('click', searchMedicine);
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchMedicine(); });
+</script>
+</body>
+</html>

@@ -2,11 +2,7 @@
 
 **An AI-powered health accessibility assistant that helps people understand symptom urgency and medicine information in plain language — not a diagnosis, just clarity on what to do next.**
 
-Built for the Idea2Impact Online Hackathon 2026 · Theme 3: Crisis Management, HealthTech & Emergency Response
-
-🔗 **Live demo:** _add your deployed link here_
-🎥 **Demo video:** _add your video link here_
-
+Built for the Idea2Impact Online Hackathon 2026 · Theme 3: Crisis Management, HealthTech & Emergency Respons
 
 
 ## The problem
